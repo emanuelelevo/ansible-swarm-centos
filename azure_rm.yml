@@ -1,0 +1,10 @@
+---
+plugin: azure.azcollection.azure_rm
+auth_source: cli
+include_vm_resouce_groups:
+  - mydockerswarm
+keyed_groups:
+  - prefix: tag
+    key: tags
+conditional_groups:
+  all_the_hosts: true
