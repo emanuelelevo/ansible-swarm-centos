@@ -1,0 +1,93 @@
+---
+- hosts: all_the_hosts
+  tasks:
+    - name: Install python packages
+      pip:
+        name:
+          - docker[tls]==4.4.4
+        extra_args: --user
+
+- hosts: all_the_hosts
+  become: yes
+  tasks:
+    - name: Get disk device name
+      ansible.builtin.shell: lsscsi 1:0:0:10 | awk '{print $NF}'
+      changed_when: false
+      register: device_name
+
+    - name: Create docker partition
+      community.general.parted:
+        device: "{{ device_name.stdout }}"
+        number: 1
+        state: present
+        label: gpt
+        fs_type: xfs
+
+    - name: Create filesystem on docker partition
+      community.general.filesystem:
+        fstype: xfs
+        dev: "{{ device_name.stdout }}1"
+        opts: -L DOCKERVOLUME
+
+    - name: Mount up device by label
+      ansible.posix.mount:
+        path: /var/lib/docker
+        src: LABEL=DOCKERVOLUME
+        fstype: xfs
+        state: mounted
+
+    - name: Add docker-ce yum repository
+      ansible.builtin.shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      changed_when: false
+
+    - name: Install docker-ce
+      yum:
+        name:
+          - docker-ce-3:20.10.5-3.el8
+          - docker-ce-cli-1:20.10.5-3.el8
+          - containerd.io-1.4.4-3.1.el8
+
+    - name: Add user into the docker group
+      ansible.builtin.user:
+        name: azureuser
+        groups: docker
+        append: yes
+
+    - name: Copy tls server files
+      ansible.builtin.copy:
+        src: "pki/{{ item }}"
+        dest: "/etc/pki/docker/server/"
+        owner: root
+        group: root
+        mode: 0400
+      loop:
+        - ca.pem
+        - server-cert.pem
+        - server-key.pem
+
+    - name: Copy tls client files
+      ansible.builtin.copy:
+        src: "pki/{{ item }}"
+        dest: "/etc/pki/docker/client/"
+        owner: azureuser
+        group: azureuser
+        mode: 0400
+      loop:
+        - ca.pem
+        - cert.pem
+        - key.pem
+
+    - name: Config docker env vars for user
+      blockinfile:
+        path: "{{ item }}/.bashrc"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        block: "export DOCKER_HOST=tcp://127.0.0.1:2376 DOCKER_TLS_HOSTNAME=127.0.0.1 DOCKER_CERT_PATH=/etc/pki/docker/client/ DOCKER_TLS_VERIFY=1"
+      loop:
+        - /root
+        - /home/azureuser
+
+    - name: Config systemctl docker service
+      ansible.builtin.lineinfile:
+        path: "/usr/lib/systemd/system/docker.service"
+        regexp: "^ExecStart="
+        line: "ExecStart=/usr/bin/dockerd --tlsverify --tlscacert=/etc/pki/docker/server/ca.pem --tlscert=/etc/pki/docker/server/server-cert.pem --tlskey=/etc/pki/docker/server/server-key.pem -H=0.0.0.0:2376 --containerd=/run/containerd/containerd.sock"
