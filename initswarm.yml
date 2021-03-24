@@ -1,0 +1,27 @@
+---
+- hosts: tag_Swarm_manager
+  tasks:
+    - name: Init swarm
+      community.docker.docker_swarm:
+        advertise_addr: "{{ ansible_eth0.ipv4.address }}"
+        state: present
+      run_once: true
+
+    - name: Get info on Docker Swarm
+      community.docker.docker_swarm_info:
+        nodes: yes
+        verbose_output: yes
+      run_once: true
+      register: swarm_info
+
+    - name: Manager nodes available
+      debug:
+        msg: "{{ swarm_info | community.general.json_query('nodes[*].ManagerStatus.Addr') }}"
+      run_once: true
+
+    - name: Add manager nodes
+      community.docker.docker_swarm:
+        state: join
+        advertise_addr: "{{ ansible_eth0.ipv4.address }}"
+        join_token: "{{ swarm_info.swarm_facts.JoinTokens.Manager }}"
+        remote_addrs: "{{ swarm_info | community.general.json_query('nodes[*].ManagerStatus.Addr') }}"
