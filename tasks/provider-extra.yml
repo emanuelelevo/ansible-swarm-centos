@@ -1,0 +1,9 @@
+---
+- name: Get info on LB
+  azure_rm_resource_info:
+    resource_group: "{{ resource_group }}"
+    provider: Network
+    resource_type: loadBalancers
+    resource_name: "{{ resource_group }}-lb"
+  run_once: true
+  register: loadbalancer_info

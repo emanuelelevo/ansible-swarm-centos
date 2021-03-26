@@ -1,0 +1,8 @@
+---
+- name: Get info on Docker Swarm
+  community.docker.docker_swarm_info:
+    nodes: yes
+    verbose_output: yes
+  delegate_to: "{{ groups.tag_Swarm_manager[0] }}"
+  run_once: true
+  register: swarm_info

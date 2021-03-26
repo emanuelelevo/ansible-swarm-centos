@@ -1,0 +1,4 @@
+---
+- import_tasks: tasks/provider-network.yml
+- import_tasks: tasks/provider-manager.yml
+- import_tasks: tasks/provider-worker.yml

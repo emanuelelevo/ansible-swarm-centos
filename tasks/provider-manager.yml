@@ -1,0 +1,66 @@
+---
+- import_tasks: tasks/provider-extra.yml
+
+- name: Create managers ip addresses
+  azure_rm_publicipaddress:
+    resource_group: "{{ resource_group }}"
+    allocation_method: Static
+    name: "{{ manager_name }}{{ index }}"
+    sku: "{{ sku_tier }}"
+  loop: "{{ list_of_managers }}"
+  loop_control:
+    index_var: index
+
+- name: Create managers network interfaces
+  azure_rm_networkinterface:
+    name: "{{ manager_name }}{{ index }}"
+    resource_group: "{{ resource_group }}"
+    virtual_network: "{{ resource_group }}"
+    subnet_name: "{{ resource_group }}"
+    security_group: "{{ resource_group }}"
+    ip_configurations:
+      - name: "ipconfig{{ index }}"
+        load_balancer_backend_address_pools:
+          - "{{ loadbalancer_info.response[0].properties.backendAddressPools[0].id }}"
+          - "{{ loadbalancer_info.response[0].properties.backendAddressPools[1].id }}"
+        private_ip_allocation_method: Static
+        private_ip_address: "{{ item }}"
+        public_ip_allocation_method: Static
+        public_ip_address_name: "{{ manager_name }}{{ index }}"
+        primary: True
+  loop: "{{ list_of_managers }}"
+  loop_control:
+    index_var: index
+
+- name: Create managers VMs
+  no_log: true
+  azure_rm_virtualmachine:
+    resource_group: "{{ resource_group }}"
+    name: "{{ manager_name }}{{ index }}"
+    vm_size: Standard_DS1_v2
+    admin_username: "{{ admin_username }}"
+    ssh_password_enabled: false
+    ssh_public_keys:
+      - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
+        key_data: "{{ ansible_ssh_public_key_file }}"
+    network_interfaces: "{{ manager_name }}{{ index }}"
+    availability_set: "{{ resource_group }}"
+    managed_disk_type: Standard_LRS
+    image:
+      offer: "{{ image_offer }}"
+      publisher: "{{ image_publisher }}"
+      sku: "{{ image_sku }}"
+      version: "{{ image_version }}"
+    data_disks:
+      - lun: 10
+        disk_size_gb: 40
+        caching: ReadOnly
+        managed_disk_type: Standard_LRS
+    tags:
+      Swarm: manager
+  loop: "{{ list_of_managers }}"
+  loop_control:
+    index_var: index
+
+- name: Refresh inventory
+  meta: refresh_inventory

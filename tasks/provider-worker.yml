@@ -1,0 +1,57 @@
+---
+- import_tasks: tasks/provider-extra.yml
+
+- name: Create workers ip addresses
+  azure_rm_publicipaddress:
+    resource_group: "{{ resource_group }}"
+    allocation_method: Static
+    name: "{{ worker_name }}{{ item }}"
+    sku: "{{ sku_tier }}"
+  with_sequence: "count={{ number_of_workers }}"
+
+- name: Create workers network interfaces
+  azure_rm_networkinterface:
+    name: "{{ worker_name }}{{ item }}"
+    resource_group: "{{ resource_group }}"
+    virtual_network: "{{ resource_group }}"
+    subnet_name: "{{ resource_group }}"
+    security_group: "{{ resource_group }}"
+    ip_configurations:
+      - name: "{{ worker_name }}{{ item }}"
+        load_balancer_backend_address_pools: "{{ loadbalancer_info.response[0].properties.backendAddressPools[1].id }}"
+        private_ip_allocation_method: Dynamic
+        public_ip_allocation_method: Dynamic
+        public_ip_address_name: "{{ worker_name }}{{ item }}"
+        primary: True
+  with_sequence: "count={{ number_of_workers }}"
+
+- name: Create workers VMs
+  no_log: true
+  azure_rm_virtualmachine:
+    resource_group: "{{ resource_group }}"
+    name: "{{ worker_name }}{{ item }}"
+    vm_size: Standard_DS1_v2
+    admin_username: "{{ admin_username }}"
+    ssh_password_enabled: false
+    ssh_public_keys:
+      - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
+        key_data: "{{ ansible_ssh_public_key_file }}"
+    network_interfaces: "{{ worker_name }}{{ item }}"
+    availability_set: "{{ resource_group }}"
+    managed_disk_type: Standard_LRS
+    image:
+      offer: "{{ image_offer }}"
+      publisher: "{{ image_publisher }}"
+      sku: "{{ image_sku }}"
+      version: "{{ image_version }}"
+    data_disks:
+      - lun: 10
+        disk_size_gb: 40
+        caching: ReadOnly
+        managed_disk_type: Standard_LRS
+    tags:
+      Swarm: worker
+  with_sequence: "count={{ number_of_workers }}"
+
+- name: Refresh inventory
+  meta: refresh_inventory

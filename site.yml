@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+  roles:
+    - provider
+
+- hosts: all_the_hosts
+  roles:
+    - docker_engine
+
+- hosts: tag_Swarm_manager
+  roles:
+    - swarm_manager
+
+- hosts: tag_Swarm_worker
+  roles:
+    - swarm_worker
