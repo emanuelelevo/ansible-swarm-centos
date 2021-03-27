@@ -1,16 +1,50 @@
+---
+# Path of your ansible private and public keys
 ansible_ssh_private_key_file: ~/.ssh/ansible_rsa
 ansible_ssh_public_key_file: "{{lookup('file', '~/.ssh/ansible_rsa.pub') }}"
+
+# Azure config
 resource_group: mydockerswarm
 location: northeurope
+
+# Azure sku tier
 sku_tier: Standard
+
+# Instances admin user
 admin_username: azureuser
+
+# Worker instances name
 worker_name: "{{ resource_group }}-worker"
+
+# Manager instances name
 manager_name: "{{ resource_group }}-manager"
+
+# Instances base image
 image_offer: CentOS
 image_publisher: OpenLogic
 image_sku: "8_3-gen2"
 image_version: "8.3.2021020401"
+
+# Docker yum pkgs pinning
+docker_ce_version: docker-ce-3:20.10.5-3.el8
+docker_ce_cli_version: docker-ce-cli-1:20.10.5-3.el8
+containerd_version: containerd.io-1.4.4-3.1.el8
+
+# Python pip pkgs pinning
+pip_docker: docker[tls]==4.4.4
+
+# Public access to instances. Its reccomended to set your public ip address here, example: '82.48.48.110/32'
 sg_allow_address: Internet
+
+# Number of desired workers
 number_of_workers: 1
+
+# List of managers based on their private ip.
+# This example creates 3 manager instances:
+# list_of_managers:
+#  - 10.1.0.10
+#  - 10.1.0.11
+#  - 10.1.0.12
+
 list_of_managers:
   - 10.1.0.10

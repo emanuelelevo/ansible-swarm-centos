@@ -14,3 +14,7 @@
 - hosts: tag_Swarm_worker
   roles:
     - swarm_worker
+
+- hosts: localhost
+  roles:
+    - output

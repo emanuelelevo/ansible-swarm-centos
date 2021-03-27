@@ -1,0 +1,12 @@
+---
+- name: Get info on LB public ip
+  azure_rm_resource_info:
+    resource_group: "{{ resource_group }}"
+    provider: Network
+    resource_type: publicIPAddresses
+    resource_name: "{{ resource_group }}-lb"
+  register: lb_ip_info
+
+- name: Output LB public ip
+  debug:
+    msg: "The LB public ip is {{ lb_ip_info.response[0].properties.ipAddress }}"
