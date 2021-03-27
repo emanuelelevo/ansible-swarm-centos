@@ -1,0 +1,3 @@
+---
+warn_list:
+  - load-failure   # it doesn't play well with tasks/extra files
