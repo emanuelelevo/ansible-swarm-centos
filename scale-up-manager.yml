@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  tasks:
+    - import_tasks: tasks/provider-manager.yml
+
+- hosts: tag_Swarm_manager
+  roles:
+    - docker_engine
+    - swarm_manager
