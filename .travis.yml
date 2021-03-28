@@ -1,0 +1,11 @@
+---
+language: python
+
+install:
+  - python3 -m pip install "ansible-lint[community,yamllint]"
+
+jobs:
+  include:
+    - stage: "Tests"
+      name: "ansible-lint"
+      script: ansible-lint
