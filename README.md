@@ -11,7 +11,7 @@ The site.yml outputs the loadbalancer public IP address that may be set on your 
 Local client TLS access over tcp:
 ```
 echo "$LB_OUTPUT_IP mydockerswarm.com" >> /etc/hosts 
-cp -r roles/docker_engine/pki ~/.docker
+cp -r roles/docker_engine/files/pki/* ~/.docker/
 export DOCKER_HOST=tcp://mydockerswarm.com:2376 DOCKER_TLS_VERIFY=1
 docker node ls
 ```

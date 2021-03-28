@@ -39,7 +39,7 @@
 
   - name: Add user into the docker group
     ansible.builtin.user:
-      name: azureuser
+      name: "{{ admin_username }}"
       groups: docker
       append: yes
 
@@ -59,8 +59,8 @@
     ansible.builtin.copy:
       src: "../files/pki/{{ item }}"
       dest: "/etc/pki/docker/client/"
-      owner: azureuser
-      group: azureuser
+      owner: "{{ admin_username }}"
+      group: "{{ admin_username }}"
       mode: 0400
     loop:
       - ca.pem
@@ -74,7 +74,7 @@
       block: "export DOCKER_HOST=tcp://127.0.0.1:2376 DOCKER_TLS_HOSTNAME=127.0.0.1 DOCKER_CERT_PATH=/etc/pki/docker/client/ DOCKER_TLS_VERIFY=1"
     loop:
       - /root
-      - /home/azureuser
+      - "/home/{{ admin_username }}"
 
   - name: Config systemctl docker service
     ansible.builtin.lineinfile:
