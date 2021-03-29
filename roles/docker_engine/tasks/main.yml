@@ -83,6 +83,12 @@
       line: "ExecStart=/usr/bin/dockerd --tlsverify --tlscacert=/etc/pki/docker/server/ca.pem --tlscert=/etc/pki/docker/server/server-cert.pem --tlskey=/etc/pki/docker/server/server-key.pem -H=0.0.0.0:2376 --containerd=/run/containerd/containerd.sock"
     notify: ["Restart docker service"]
 
+  - name: Enable docker service
+    ansible.builtin.systemd:
+      name: docker
+      enabled: yes
+      state: started
+
   become: yes
 
 - name: Install python packages

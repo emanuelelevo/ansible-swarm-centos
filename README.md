@@ -1,10 +1,10 @@
-# ansible-swarm-centos
+# Azure docker-swarm scalable cluster with basic TLS
 
 [![Build Status](https://www.travis-ci.com/emanuelelevo/ansible-swarm-centos.svg?branch=main)](https://www.travis-ci.com/emanuelelevo/ansible-swarm-centos)
 
 Set your variables under [group_vars/all.yml](https://github.com/emanuelelevo/ansible-swarm-centos/blob/main/group_vars/all.yml)
 
-The provided certs allow TLS for CN mydockerswarm.com, *.mydockerswarm.com and 127.0.0.1. 
+The provided certs allow TLS for CN mydockerswarm.com, *.mydockerswarm.com and 127.0.0.1. Current dummy cert passphrase is "secret".
 
 The site.yml outputs the loadbalancer public IP address that may be set on your /etc/hosts file with CN mydockerswarm.com has shown below. 
 

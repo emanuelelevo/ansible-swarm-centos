@@ -33,13 +33,23 @@ containerd_version: containerd.io-1.4.4-3.1.el8
 # Python pip pkgs pinning
 pip_docker: docker[tls]==4.4.4
 
-# Public access to instances. Its reccomended to set your public ip address here, example: '82.48.48.110/32'
+# Public access to instances. It's reccomended to set your public ip address here, example: '82.48.48.110/32'
 sg_allow_address: Internet
+
+# Azure virtualnetwork
+vnet_cidr: "10.0.0.0/8"
+
+# Azure subnet for virtualnetwork
+subnet_cidr: "10.1.0.0/20"
+
+# All nodes application LB frontend/backend port
+# Example: docker service create --name nginx-sv --replicas 2 --publish published=80,target=80 nginx
+application_port: 80
 
 # Number of desired workers
 number_of_workers: 1
 
-# List of managers based on their private ip.
+# List of managers based on their private ip
 # This example creates 3 manager instances:
 # list_of_managers:
 #  - 10.1.0.10
